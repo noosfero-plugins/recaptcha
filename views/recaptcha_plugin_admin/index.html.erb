@@ -1,0 +1,32 @@
+<h1><%= _("reCaptcha Management") %> </h1>
+
+<%= labelled_form_for(:environment, :url => {:action => 'update'}) do |f| %>
+
+<table>
+  <tr>
+    <th><%= c_('Configuration') %></th>
+    <th><%= _('Value') %></th>
+  </tr>
+  <tr>
+    <td><%= _('Version (1 or 2)') %></td>
+    <td><%= text_field :environment, :recaptcha_version %></td>
+  </tr>
+  <tr>
+    <td><%= _('Site key') %></td>
+    <td><%= text_field :environment, :recaptcha_site_key %></td>
+  </tr>
+  <tr>
+    <td><%= _('Secret key') %></td>
+    <td><%= text_field :environment, :recaptcha_private_key %></td>
+  </tr>
+</table>
+
+
+<div>
+  <% button_bar do %>
+    <%= submit_button('save', c_('Save changes')) %>
+    <%= button :back, _('Back to plugins administration panel'), :controller => 'plugins' %>
+  <% end %>
+</div>
+
+<% end %>
