@@ -17,17 +17,17 @@ class RecaptchaPlugin < Noosfero::Plugin
     params = args[1]
     environment = args[2]
 
+    status = 500
     private_key = environment.recaptcha_private_key
-    version = environment.recaptcha_version
+    version = environment.recaptcha_version.to_i
 
     msg_icve = _('Internal captcha validation error')
-    msg_esca = 'Environment recaptcha_plugin_attributes'
+    msg_erpa = 'Environment recaptcha_plugin_attributes'
 
-    return RecaptchaVerification.hash_error(msg_icve, s, nil, "#{msg_eacs} private_key not defined") if private_key.nil?
-    return RecaptchaVerification.hash_error(msg_icve, s, nil, "#{msg_eacs} version not defined") unless version == 1 || version == 2
+    return RecaptchaVerification.hash_error(msg_icve, status, nil, "#{msg_erpa} private_key not defined") if private_key.nil?
+    return RecaptchaVerification.hash_error(msg_icve, status, nil, "#{msg_erpa} version not defined") unless version == 1 || version == 2
 
     rv = RecaptchaVerification.new
-
     if version  == 1
       verify_uri = 'https://www.google.com/recaptcha/api/verify'
       return rv.verify_recaptcha_v1(remote_ip, private_key, verify_uri, params[:recaptcha_challenge_field], params[:recaptcha_response_field])

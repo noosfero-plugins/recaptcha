@@ -1,6 +1,6 @@
 class RecaptchaVerification
 
-  def self.hash_error(user_message, status, log_message=nil, javascript_console_message=nil)
+  def hash_error(user_message, status, log_message=nil, javascript_console_message=nil)
     {user_message: user_message, status: status, log_message: log_message, javascript_console_message: javascript_console_message}
   end
 
@@ -8,7 +8,7 @@ class RecaptchaVerification
   # :user_message, :status, :log_message, :javascript_console_message
   def verify_recaptcha_v1(remote_ip, private_key, api_recaptcha_verify_uri, recaptcha_challenge_field, recaptcha_response_field)
     if recaptcha_challenge_field == nil || recaptcha_response_field == nil
-      return render_api_error!(_('Captcha validation error'), 500, nil, _('Missing captcha data'))
+      return hash_error(_('Captcha validation error'), 500, nil, _('Missing captcha data'))
     end
 
     verify_hash = {
@@ -25,18 +25,18 @@ class RecaptchaVerification
     begin
       result = https.request(request).body.split("\n")
     rescue Exception => e
-      return render_api_error!(_('Internal captcha validation error'), 500, nil, "Error validating Googles' recaptcha version 1: #{e.message}")
+      return hash_error(_('Internal captcha validation error'), 500, nil, "Error validating Googles' recaptcha version 1: #{e.message}")
     end
     return true if result[0] == "true"
-    return render_api_error!(_("Wrong captcha text, please try again"), 403, nil, "Error validating Googles' recaptcha version 1: #{result[1]}") if result[1] == "incorrect-captcha-sol"
+    return hash_error(_("Wrong captcha text, please try again"), 403, nil, "Error validating Googles' recaptcha version 1: #{result[1]}") if result[1] == "incorrect-captcha-sol"
     #Catches all errors at the end
-    return render_api_error!(_("Internal recaptcha validation error"), 500, nil, "Error validating Googles' recaptcha version 1: #{result[1]}")
+    return hash_error(_("Internal recaptcha validation error"), 500, nil, "Error validating Googles' recaptcha version 1: #{result[1]}")
   end
 
   # return true or a hash with the error
   # :user_message, :status, :log_message, :javascript_console_message
   def verify_recaptcha_v2(remote_ip, private_key, api_recaptcha_verify_uri, g_recaptcha_response)
-    return render_api_error!(_('Captcha validation error'), 500, nil, _('Missing captcha data')) if g_recaptcha_response == nil
+    return hash_error(_('Captcha validation error'), 500, nil, _('Missing captcha data')) if g_recaptcha_response == nil
     verify_hash = {
         "secret"    => private_key,
         "remoteip"  => remote_ip,
@@ -50,7 +50,7 @@ class RecaptchaVerification
     begin
       body = https.request(request).body
     rescue Exception => e
-      return render_api_error!(_('Internal captcha validation error'), 500, nil, "recaptcha error: #{e.message}")
+      return hash_error(_('Internal captcha validation error'), 500, nil, "recaptcha error: #{e.message}")
     end
     captcha_result = JSON.parse(body)
     captcha_result["success"] ? true : captcha_result

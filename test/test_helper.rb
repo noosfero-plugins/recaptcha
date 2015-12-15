@@ -8,18 +8,45 @@ class ActiveSupport::TestCase
     Noosfero::API::API
   end
 
-  def pass_captcha(mocked_url, captcha_verification_body)
+  def pass_captcha(version)
+
+    if version.to_i == 1
+      mocked_url = 'https://www.google.com/recaptcha/api/verify'
+    end
+    if version.to_i == 2
+      mocked_url = 'https://www.google.com/recaptcha/api/siteverify'
+      body={ secret: "secret",
+            response: "response",
+            remoteip: "127.0.0.1"}
+    end
+
+    pass_body = '{
+                    "success": true
+                  }'
     stub_request(:post, mocked_url).
-      with(:body => captcha_verification_body,
+      with(:body => body,
            :headers => {'Accept'=>'*/*', 'User-Agent'=>'Ruby'}).
-      to_return(:status => 200, :body => "1", :headers => {'Content-Length' => 1})
+      to_return(:status => 200, :body => pass_body, :headers => {'Content-Length' => 1})
   end
 
-  def fail_captcha_text(mocked_url, captcha_verification_body)
+  def fail_captcha(version)
+    if version.to_i == 1
+      mocked_url = 'https://www.google.com/recaptcha/api/verify'
+    end
+    if version.to_i == 2
+      mocked_url = 'https://www.google.com/recaptcha/api/siteverify'
+      body={ secret: "secret",
+            response: "response",
+            remoteip: "127.0.0.1"}
+    end
+
+    fail_body = '{
+                    "success": false
+                  }'
     stub_request(:post, mocked_url).
-      with(:body => captcha_verification_body,
+      with(:body => body,
            :headers => {'Accept'=>'*/*', 'User-Agent'=>'Ruby'}).
-      to_return(:status => 200, :body => "0", :headers => {'Content-Length' => 1})
+      to_return(:status => 200, :body => fail_body, :headers => {'Content-Length' => 1})
   end
 
   def login_with_captcha
