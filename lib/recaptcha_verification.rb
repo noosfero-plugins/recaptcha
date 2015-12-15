@@ -22,11 +22,11 @@ class RecaptchaVerification
     https.use_ssl = true
     request = Net::HTTP::Post.new(uri.path)
     request.set_form_data(verify_hash)
-    begin
+    # begin
       result = https.request(request).body.split("\n")
-    rescue Exception => e
-      return hash_error(_('Internal captcha validation error'), 500, nil, "Error validating Googles' recaptcha version 1: #{e.message}")
-    end
+    # rescue Exception => e
+      # return hash_error(_('Internal captcha validation error'), 500, nil, "Error validating Googles' recaptcha version 1: #{e.message}")
+    # end
     return true if result[0] == "true"
     return hash_error(_("Wrong captcha text, please try again"), 403, nil, "Error validating Googles' recaptcha version 1: #{result[1]}") if result[1] == "incorrect-captcha-sol"
     #Catches all errors at the end
@@ -47,18 +47,19 @@ class RecaptchaVerification
     https.use_ssl = true
     request = Net::HTTP::Post.new(uri.path)
     request.set_form_data(verify_hash)
-    begin
+    # begin
       body = https.request(request).body
-    rescue Exception => e
-      return hash_error(_('Internal captcha validation error'), 500, nil, "recaptcha error: #{e.message}")
-    end
+    # rescue Exception => e
+      # return hash_error(_('Internal captcha validation error'), 500, nil, "recaptcha error: #{e.message}")
+    # end
     captcha_result = JSON.parse(body)
-    captcha_result["success"] ? true : captcha_result
+    return true if captcha_result["success"]
+    return hash_error(_("Wrong captcha text, please try again"), 403, body, captcha_result["error-codes"])
   end
 
   # return true or a hash with the error
   # :user_message, :status, :log_message, :javascript_console_message
-  def verify_recaptcha(client_id, token, captcha_text, verify_uri)
+  def verify_serpro_captcha(client_id, token, captcha_text, verify_uri)
     msg_icve = _('Internal captcha validation error')
     msg_esca = 'Environment recaptcha_plugin_attributes'
     return hash_error(msg_icve, 500, nil, "#{msg_esca} verify_uri not defined") if verify_uri.nil?
