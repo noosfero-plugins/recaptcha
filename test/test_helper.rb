@@ -30,9 +30,7 @@ class ActiveSupport::TestCase
             remoteip: "127.0.0.1"}
     end
 
-    return_body = "{
-                    \"success\": #{pass}
-                  }"
+    return_body = "{\"success\": #{pass} }"
 
     stub_request(:post, @verify_uri).
       with(:body => body,

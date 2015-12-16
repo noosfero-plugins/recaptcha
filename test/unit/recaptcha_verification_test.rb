@@ -17,17 +17,16 @@ class RecaptchaVerificationTest < ActiveSupport::TestCase
     @params = {}
     @params[:remoteip] = @remoteip
     if version.to_i == 1
-      #wont go to google thanks to webmock
+      # won't go to google thanks to webmock
       @verify_uri = 'https://www.google.com/recaptcha/api/verify'
       @params[:privatekey] = @environment.recaptcha_private_key
       @params[:challenge] = "challenge"
       @params[:response] = "response"
-
       @params[:recaptcha_challenge_field] = @params[:challenge]
       @params[:recaptcha_response_field] = @params[:response]
     end
     if version.to_i == 2
-      #wont go to google thanks to webmock
+      # won't go to google thanks to webmock
       @verify_uri = 'https://www.google.com/recaptcha/api/siteverify'
       @params[:secret] = @environment.recaptcha_private_key
       @params[:response]  = "response"
@@ -55,7 +54,8 @@ class RecaptchaVerificationTest < ActiveSupport::TestCase
     setup_captcha(version)
     validate_captcha(version)
     r = RecaptchaPlugin.new.test_captcha(@remoteip, @params, @environment)
-    assert r
+    assert_not_kind_of Hash, r
+    assert_equal true, r
   end
 
   should 'fail recaptcha version 1' do
@@ -63,16 +63,16 @@ class RecaptchaVerificationTest < ActiveSupport::TestCase
     setup_captcha(version)
     validate_captcha(version, false)
     r = RecaptchaPlugin.new.test_captcha(@remoteip, @params, @environment)
-    assert r
+    assert_kind_of Hash, r
   end
 
   should 'pass recaptcha version 2' do
     version = 2
     setup_captcha(version)
     validate_captcha(version)
-    rp = RecaptchaPlugin.new
-    r = rp.test_captcha(@remoteip, @params, @environment)
-    assert r
+    r = RecaptchaPlugin.new.test_captcha(@remoteip, @params, @environment)
+    assert_not_kind_of Hash, r
+    assert_equal true, r
   end
 
   should 'fail recaptcha version 2' do
@@ -80,6 +80,7 @@ class RecaptchaVerificationTest < ActiveSupport::TestCase
     setup_captcha(version)
     validate_captcha(version, false)
     r = RecaptchaPlugin.new.test_captcha(@remoteip, @params, @environment)
+    assert_kind_of Hash, r
     assert_equal r[:user_message], _("Wrong captcha text, please try again")
   end
 
@@ -109,7 +110,6 @@ class RecaptchaVerificationTest < ActiveSupport::TestCase
       assert_equal json["message"], _("Wrong captcha text, please try again")
   end
 
-
   should 'fail captcha if user has not filled recaptcha_verify_uri v1 text' do
     version = 1
     setup_captcha(version)
@@ -124,17 +124,47 @@ class RecaptchaVerificationTest < ActiveSupport::TestCase
     article = create_article('Article 1')
     params = {}
     params[:value] = 1
-
     post "/api/v1/articles/#{article.id}/vote?#{params.to_query}"
     json = JSON.parse(last_response.body)
     assert_equal 401, last_response.status
   end
 
-  should 'perform a vote on an article identified by id' do
+  should 'not perform a vote if recaptcha 1 fails' do
+    version = 1
+    setup_captcha(version)
+    validate_captcha(version, false)
+    post "/api/v1/login-captcha?#{@params.to_query}"
+    json = JSON.parse(last_response.body)
+    article = create_article('Article 1')
+    params = {}
+    params[:private_token] = json['private_token']
+    params[:value] = 1
+    post "/api/v1/articles/#{article.id}/vote?#{params.to_query}"
+    json = JSON.parse(last_response.body)
+    assert_equal 401, last_response.status
+  end
+
+  should 'perform a vote on an article identified by id using recaptcha 1' do
+    version = 1
+    setup_captcha(version)
+    validate_captcha(version)
+    post "/api/v1/login-captcha?#{@params.to_query}"
+    json = JSON.parse(last_response.body)
+    article = create_article('Article 1')
+    params = {}
+    params[:private_token] = json['private_token']
+    params[:value] = 1
+    post "/api/v1/articles/#{article.id}/vote?#{params.to_query}"
+    json = JSON.parse(last_response.body)
+    assert_not_equal 401, last_response.status
+    assert_equal true, json['vote']
+  end
+
+  should 'perform a vote on an article identified by id using recaptcha 2' do
     version = 2
     setup_captcha(version)
     validate_captcha(version)
-    post "/api/v1/login-captcha?#{params.to_query}"
+    post "/api/v1/login-captcha?#{@params.to_query}"
     json = JSON.parse(last_response.body)
     article = create_article('Article 1')
     params = {}
@@ -160,21 +190,5 @@ class RecaptchaVerificationTest < ActiveSupport::TestCase
     json = JSON.parse(last_response.body)
     assert_equal 401, last_response.status
   end
-
-  should 'not perform a vote if recaptcha 1 fails' do
-    version = 1
-    setup_captcha(version)
-    validate_captcha(version, false)
-    post "/api/v1/login-captcha?#{@params.to_query}"
-    json = JSON.parse(last_response.body)
-    article = create_article('Article 1')
-    params = {}
-    params[:private_token] = json['private_token']
-    params[:value] = 1
-    post "/api/v1/articles/#{article.id}/vote?#{params.to_query}"
-    json = JSON.parse(last_response.body)
-    assert_equal 401, last_response.status
-  end
-
 
 end
