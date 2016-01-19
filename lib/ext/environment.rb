@@ -3,7 +3,7 @@ require_dependency 'environment'
 class Environment
 
   #reCAPTCHA settings
-  settings_items :recaptcha_plugin, :type => ActiveSupport::HashWithIndifferentAccess, :default => {}
+  settings_items :recaptcha_plugin, :type => Hash, :default => {}
   attr_accessible :recaptcha_plugin_attributes, :recaptcha_version, :recaptcha_private_key, :recaptcha_site_key, :recaptcha_verify_uri
 
   def recaptcha_plugin_attributes

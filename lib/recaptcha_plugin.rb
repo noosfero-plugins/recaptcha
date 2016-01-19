@@ -8,10 +8,6 @@ class RecaptchaPlugin < Noosfero::Plugin
     _("Provides a plugin to Google reCAPTCHA.")
   end
 
-  def self.api_mount_points
-    [RecaptchaPlugin::API ]
-  end
-
   def test_captcha(*args)
     remote_ip = args[0]
     params = args[1]
@@ -26,7 +22,6 @@ class RecaptchaPlugin < Noosfero::Plugin
 
     return RecaptchaVerification.hash_error(msg_icve, status, nil, "#{msg_erpa} private_key not defined") if private_key.nil?
     return RecaptchaVerification.hash_error(msg_icve, status, nil, "#{msg_erpa} version not defined") unless version == 1 || version == 2
-
     rv = RecaptchaVerification.new
     if version  == 1
       verify_uri = 'https://www.google.com/recaptcha/api/verify'
