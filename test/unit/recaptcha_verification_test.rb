@@ -53,7 +53,7 @@ class RecaptchaVerificationTest < ActiveSupport::TestCase
     version = 1
     setup_captcha(version)
     validate_captcha(version)
-    r = RecaptchaPlugin.new.test_captcha(@remoteip, @params, @environment)
+    r = RecaptchaPlugin.new.verify_captcha(@remoteip, @params, @environment)
     assert_not_kind_of Hash, r
     assert_equal true, r
   end
@@ -62,7 +62,7 @@ class RecaptchaVerificationTest < ActiveSupport::TestCase
     version = 1
     setup_captcha(version)
     validate_captcha(version, false)
-    r = RecaptchaPlugin.new.test_captcha(@remoteip, @params, @environment)
+    r = RecaptchaPlugin.new.verify_captcha(@remoteip, @params, @environment)
     assert_kind_of Hash, r
   end
 
@@ -70,7 +70,7 @@ class RecaptchaVerificationTest < ActiveSupport::TestCase
     version = 2
     setup_captcha(version)
     validate_captcha(version)
-    r = RecaptchaPlugin.new.test_captcha(@remoteip, @params, @environment)
+    r = RecaptchaPlugin.new.verify_captcha(@remoteip, @params, @environment)
     assert_not_kind_of Hash, r
     assert_equal true, r
   end
@@ -79,7 +79,7 @@ class RecaptchaVerificationTest < ActiveSupport::TestCase
     version = 2
     setup_captcha(version)
     validate_captcha(version, false)
-    r = RecaptchaPlugin.new.test_captcha(@remoteip, @params, @environment)
+    r = RecaptchaPlugin.new.verify_captcha(@remoteip, @params, @environment)
     assert_kind_of Hash, r
     assert_equal r[:user_message], _("Wrong captcha text, please try again")
   end
@@ -116,7 +116,7 @@ class RecaptchaVerificationTest < ActiveSupport::TestCase
     validate_captcha(version, false)
     rv = RecaptchaVerification.new
     @params[:recaptcha_response_field] = nil
-    hash = RecaptchaPlugin.new.test_captcha(@remoteip, @params, @environment)
+    hash = RecaptchaPlugin.new.verify_captcha(@remoteip, @params, @environment)
     assert hash[:user_message], _('Captcha text has not been filled')
   end
 

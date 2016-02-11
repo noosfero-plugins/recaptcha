@@ -8,7 +8,7 @@ class RecaptchaPlugin < Noosfero::Plugin
     _("Provides a plugin to Google reCAPTCHA.")
   end
 
-  def test_captcha(*args)
+  def verify_captcha(*args)
     remote_ip = args[0]
     params = args[1]
     environment = args[2]
